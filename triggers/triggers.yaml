@@ -5,13 +5,17 @@ metadata:
   namespace: getting-started
 spec:
   params:
-    - name: gitrevision
-      description: The git revision
-      default: master
-    - name: gitrepositoryurl
-      description: The git repository url
-    - name: namespace
-      description: The namespace to create the resources
+    - name: action
+    - name: is_pr_merged
+    - name: commit_sha
+    - name: head_branch
+    - name: base_branch
+    - name: working_branch
+    - name: pr_number
+    - name: pr_repo_name
+    - name: pr_repo_full_name
+    - name: pr_repo_url
+    - name: installation_id
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -20,6 +24,7 @@ spec:
       spec:
         pipelineRef:
           name: hello-goodbye
+        serviceAccountName: tekton-sa
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
@@ -28,22 +33,63 @@ metadata:
   namespace: getting-started
 spec:
   params:
-    - name: gitrevision
-      value: $(body.head_commit.id)
-    - name: namespace
-      value: getting-started
-    - name: gitrepositoryurl
-      value: "https://github.com/$(body.repository.full_name)"
+  - name: action
+    value: $(body.action)
+  - name: is_pr_merged
+    value: $(body.pull_request.merged)
+  - name: commit_sha
+    value: $(extensions.commit_sha)
+  - name: head_branch
+    value: $(body.pull_request.head.ref)
+  - name: base_branch
+    value: $(body.pull_request.base.ref)
+  - name: working_branch
+    value: $(extensions.working_branch)
+  - name: pr_number
+    value: $(body.number)
+  - name: pr_repo_name
+    value: $(body.repository.name)
+  - name: pr_repo_full_name
+    value: $(body.repository.full_name)
+  - name: pr_repo_url
+    value: $(body.repository.html_url)
+  - name: installation_id
+    value: $(body.installation.id)
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: getting-started-listener
-  namespace: getting-started
+  name: pr-validation-event-listener
 spec:
   serviceAccountName: triggers-sa
   triggers:
     - bindings:
-      - ref: getting-started-pipelinebinding
+        - kind: TriggerBinding
+          ref: getting-started-pipelinebinding
+      interceptors:
+        - params:
+            - name: secretRef
+              value:
+                secretKey: token
+                secretName: test-pipeline-el-secret
+            - name: eventTypes
+              value:
+                - pull_request
+          ref:
+            kind: ClusterInterceptor
+            name: github
+        - params:
+            - name: filter
+              value: 'body.action == "closed" && body.pull_request.merged == true ? true : body.action in ["opened", "reopened", "synchronize"]'
+            - name: overlays
+              value:
+              - key: working_branch
+                expression: 'body.action == "closed" && body.pull_request.merged == true ? body.pull_request.base.ref : body.pull_request.head.ref'
+              - key: commit_sha
+                expression: 'body.action == "closed" && body.pull_request.merged == true ? body.pull_request.merge_commit_sha : body.pull_request.head.sha'
+          ref:
+            kind: ClusterInterceptor
+            name: cel
+      name: katamari-tests-pr-listener
       template:
         ref: getting-started-triggertemplate
