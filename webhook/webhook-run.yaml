@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: create-webhook-run
+spec:
+  taskRef:
+    name: create-webhook
+  params:
+  - name: GitHubOrg
+    value: "liyanwei93"
+  - name: GitHubUser
+    value: "liyanwei93"
+  - name: GitHubRepo
+    value: "tekton-pipeline"
+  - name: GitHubSecretName
+    value: webhook-secret
+  - name: GitHubAccessTokenKey
+    value: token
+  - name: GitHubSecretStringKey
+    value: secret
+  - name: ExternalDomain
+    value: http://pr-validation-event-listener-openshift-pipelines.apps.lyanwei.cp.fyre.ibm.com
+  timeout: 1000s
+  serviceAccountName: tekton-triggers-createwebhook

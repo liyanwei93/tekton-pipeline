@@ -13,7 +13,7 @@ spec:
       spec:
         pipelineRef:
           name: hello-goodbye
-        serviceAccountName: tekton-sa
+        serviceAccountName: triggers-sa
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
