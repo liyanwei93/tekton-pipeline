@@ -2,7 +2,6 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
   name: getting-started-triggertemplate
-  namespace: getting-started
 spec:
   params:
     - name: action
@@ -30,7 +29,6 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
   name: getting-started-pipelinebinding
-  namespace: getting-started
 spec:
   params:
   - name: action
