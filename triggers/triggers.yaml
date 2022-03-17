@@ -74,22 +74,10 @@ spec:
                 secretName: test-pipeline-el-secret
             - name: eventTypes
               value:
-                - pull_request
+                - issue
           ref:
             kind: ClusterInterceptor
             name: github
-        - params:
-            - name: filter
-              value: 'body.action == "closed" && body.pull_request.merged == true ? true : body.action in ["opened", "reopened", "synchronize"]'
-            - name: overlays
-              value:
-              - key: working_branch
-                expression: 'body.action == "closed" && body.pull_request.merged == true ? body.pull_request.base.ref : body.pull_request.head.ref'
-              - key: commit_sha
-                expression: 'body.action == "closed" && body.pull_request.merged == true ? body.pull_request.merge_commit_sha : body.pull_request.head.sha'
-          ref:
-            kind: ClusterInterceptor
-            name: cel
       name: katamari-tests-pr-listener
       template:
         ref: getting-started-triggertemplate
