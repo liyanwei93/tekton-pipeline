@@ -34,5 +34,24 @@ spec:
     - bindings:
         - kind: TriggerBinding
           ref: getting-started-pipelinebinding
+      interceptors:
+        - params:
+            - name: secretRef
+              value:
+                secretKey: secretToken
+                secretName: github-secret
+            - name: eventTypes
+              value:
+                - issues
+          ref:
+            kind: ClusterInterceptor
+            name: github
+        - params:
+            - name: filter
+              value: 'body.action == "opened"'
+          ref:
+            kind: ClusterInterceptor
+            name: cel
+      name: issue-listener
       template:
         ref: getting-started-triggertemplate
