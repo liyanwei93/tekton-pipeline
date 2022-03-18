@@ -1,10 +1,10 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: cloudpak-deploy
+  name: ocp-provision
 spec:
   steps:
-    - name: deploy-cloudpak
+    - name: ocp-provision
       image: quay.io/openshift/origin-cli:latest
       script: |
         #!/bin/sh
@@ -26,7 +26,7 @@ spec:
               --password "${argo_pwd}" \
               --insecure
 
-        argocd app create cp4waiops-app \
+        argocd app create ocp-provision \
         --sync-policy automatic \
         --project default \
         --repo https://github.com/IBM/cp4waiops-gitops.git \
@@ -37,14 +37,11 @@ spec:
         --helm-set cp4waiops.targetRevision=release-3.3 \
         --helm-set argocd.cluster=openshift \
         --helm-set argocd.allowLocalDeploy=false \
-        --helm-set rookceph.enabled=true \
-        --helm-set cp4waiops.version=v3.2 \
-        --helm-set cp4waiops.dockerUsername=cp \
-        --helm-set cp4waiops.dockerPassword=REPLACE_IT \
-        --helm-set cp4waiops.profile=small \
-        --helm-set cp4waiops.aiManager.enabled=true \
-        --helm-set cp4waiops.aiManager.namespace=cp4waiops \
-        --helm-set cp4waiops.aiManager.instanceName=aiops-installation \
-        --helm-set cp4waiops.eventManager.enabled=true \
-        --helm-set cp4waiops.eventManager.clusterDomain=REPLACE_IT \
-        --helm-set cp4waiops.eventManager.namespace=noi
+        --helm-set rookceph.enabled=false \
+        --helm-set cp4waiops.aiManager.enabled=false \
+        --helm-set cp4waiops.eventManager.enabled=false \
+        --helm-set cluster.enabled=true \
+        --helm-set cluster.provider.type=fyre \
+        --helm-set cluster.provider.credentials.productGroupId="332" \
+        --helm-set cluster.provider.credentials.token=REPLACE_IT \
+        --helm-set cluster.provider.credentials.user=REPLACE_IT

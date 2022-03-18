@@ -4,11 +4,11 @@ metadata:
   name: cloudpak
 spec:
   tasks:
+  - name: ocp-provision
+    taskRef:
+      name: ocp-provision
   - name: cloudpak-deploy
+    runAfter:
+     - ocp-provision
     taskRef:
       name: cloudpak-deploy
-  - name: goodbye
-    runAfter:
-     - cloudpak-deploy
-    taskRef:
-      name: goodbye
