@@ -5,8 +5,33 @@ metadata:
 spec:
   steps:
     - name: hello
-      image: ubuntu
-      command:
-        - echo
-      args:
-        - "Hello World!"
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        #!/bin/sh
+        set -eu -o pipefail
+        curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+        chmod +x /usr/local/bin/argocd
+        argo_route=openshift-gitops-server
+        argo_secret=openshift-gitops-cluster
+        sa_account=openshift-gitops-argocd-application-controller
+
+        argo_pwd=$(oc get secret ${argo_secret} \
+                    -n openshift-gitops \
+                    -o jsonpath='{.data.admin\.password}' | base64 -d ; echo ) \
+        && argo_url=$(oc get route ${argo_route} \
+                      -n openshift-gitops \
+                      -o jsonpath='{.spec.host}') \
+        && argocd login "${argo_url}" \
+              --username admin \
+              --password "${argo_pwd}" \
+              --insecure
+              
+        argocd app create ceph \
+        --sync-policy automatic \
+        --project default \
+        --repo https://github.com/IBM/cp4waiops-gitops.git \
+        --path ceph \
+        --revision HEAD \
+        --dest-namespace rook-ceph \
+        --dest-server https://kubernetes.default.svc \
+        --directory-recurse
