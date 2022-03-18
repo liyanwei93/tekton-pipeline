@@ -31,7 +31,7 @@ spec:
         --project default \
         --repo https://github.com/IBM/cp4waiops-gitops.git \
         --path config/all-in-one \
-        --revision HEAD \
+        --revision release-3.3 \
         --dest-namespace openshift-gitops \
         --dest-server https://kubernetes.default.svc \
         --helm-set cp4waiops.targetRevision=release-3.3 \
