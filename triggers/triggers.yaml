@@ -12,7 +12,7 @@ spec:
         generateName: hello-goodbye-run-
       spec:
         pipelineRef:
-          name: hello-goodbye
+          name: cloudpak
         serviceAccountName: triggers-sa
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
