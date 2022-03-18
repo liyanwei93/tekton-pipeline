@@ -1,0 +1,55 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: cloudpak-deploy
+spec:
+  steps:
+    - name: deploy-cloudpak
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        #!/bin/sh
+        set -eu -o pipefail
+        curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+        chmod +x /usr/local/bin/argocd
+        argo_route=openshift-gitops-server
+        argo_secret=openshift-gitops-cluster
+        sa_account=openshift-gitops-argocd-application-controller
+
+        argo_pwd=$(oc get secret ${argo_secret} \
+                    -n openshift-gitops \
+                    -o jsonpath='{.data.admin\.password}' | base64 -d ; echo ) \
+        && argo_url=$(oc get route ${argo_route} \
+                      -n openshift-gitops \
+                      -o jsonpath='{.spec.host}') \
+        && argocd login "${argo_url}" \
+              --username admin \
+              --password "${argo_pwd}" \
+              --insecure
+
+        argocd app create cp4waiops-app \
+        --sync-policy automatic \
+        --project default \
+        --repo https://github.com/IBM/cp4waiops-gitops.git \
+        --path config/all-in-one \
+        --revision HEAD \
+        --dest-namespace openshift-gitops \
+        --dest-server https://kubernetes.default.svc \
+        --helm-set cp4waiops.targetRevision=release-3.3 \
+        --helm-set argocd.cluster=openshift \
+        --helm-set argocd.allowLocalDeploy=false \
+        --helm-set rookceph.enabled=true \
+        --helm-set cp4waiops.version=v3.2 \
+        --helm-set cp4waiops.dockerUsername=cp \
+        --helm-set cp4waiops.dockerPassword=REPLACE_IT \
+        --helm-set cp4waiops.profile=small \
+        --helm-set cp4waiops.aiManager.enabled=true \
+        --helm-set cp4waiops.aiManager.namespace=cp4waiops \
+        --helm-set cp4waiops.aiManager.instanceName=aiops-installation \
+        --helm-set cp4waiops.eventManager.enabled=true \
+        --helm-set cp4waiops.eventManager.clusterDomain=REPLACE_IT \
+        --helm-set cp4waiops.eventManager.namespace=noi \
+        --helm-set cluster.enabled=true \
+        --helm-set cluster.provider.type=fyre \
+        --helm-set cluster.provider.credentials.productGroupId="332" \
+        --helm-set cluster.provider.credentials.token=REPLACE_IT \
+        --helm-set cluster.provider.credentials.user=REPLACE_IT

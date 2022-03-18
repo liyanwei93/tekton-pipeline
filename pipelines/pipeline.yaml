@@ -1,14 +1,14 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: hello-goodbye
+  name: cloudpak
 spec:
   tasks:
-  - name: hello
+  - name: cloudpak-deploy
     taskRef:
-      name: hello
+      name: cloudpak-deploy
   - name: goodbye
     runAfter:
-     - hello
+     - cloudpak-deploy
     taskRef:
       name: goodbye
