@@ -26,6 +26,9 @@ spec:
               --password "${argo_pwd}" \
               --insecure
 
+        server_name=$(oc get OpenShiftFyre openshiftfyre-qb-large -n openshift-gitops -o jsonpath={.status.cluster.name})
+        server=apps.$server_name.cp.fyre.ibm.com
+
         argocd app create cp4waiops-app \
         --sync-policy automatic \
         --project default \
@@ -46,5 +49,5 @@ spec:
         --helm-set cp4waiops.aiManager.namespace=cp4waiops \
         --helm-set cp4waiops.aiManager.instanceName=aiops-installation \
         --helm-set cp4waiops.eventManager.enabled=true \
-        --helm-set cp4waiops.eventManager.clusterDomain=REPLACE_IT \
+        --helm-set cp4waiops.eventManager.clusterDomain=$server \
         --helm-set cp4waiops.eventManager.namespace=noi

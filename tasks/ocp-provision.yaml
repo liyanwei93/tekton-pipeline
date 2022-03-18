@@ -9,6 +9,7 @@ spec:
       script: |
         #!/bin/sh
         set -eu -o pipefail
+
         curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x /usr/local/bin/argocd
         argo_route=openshift-gitops-server
@@ -45,3 +46,12 @@ spec:
         --helm-set cluster.provider.credentials.productGroupId="332" \
         --helm-set cluster.provider.credentials.token=REPLACE_IT \
         --helm-set cluster.provider.credentials.user=REPLACE_IT
+
+        while : ; do
+          status=$(oc get OpenShiftFyre openshiftfyre-qb-large -n openshift-gitops -o jsonpath={.status.cluster.status})
+          if [[ $status != "deployed" ]]; then
+            sleep 10s
+          else
+            break
+          fi
+        done
