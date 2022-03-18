@@ -9,7 +9,7 @@ spec:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        generateName: hello-goodbye-run-
+        generateName: cloudpak-deploy-run-
       spec:
         pipelineRef:
           name: cloudpak
