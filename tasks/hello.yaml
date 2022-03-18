@@ -25,12 +25,12 @@ spec:
               --username admin \
               --password "${argo_pwd}" \
               --insecure
-              
+
         argocd app create ceph \
         --sync-policy automatic \
         --project default \
         --repo https://github.com/IBM/cp4waiops-gitops.git \
-        --path ceph \
+        --path config/ceph \
         --revision HEAD \
         --dest-namespace rook-ceph \
         --dest-server https://kubernetes.default.svc \
