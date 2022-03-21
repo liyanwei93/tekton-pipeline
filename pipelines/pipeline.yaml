@@ -3,12 +3,30 @@ kind: Pipeline
 metadata:
   name: cloudpak
 spec:
+  params:
+    - name: issue_number
+    - name: issue_user
+    - name: issue_body
   tasks:
   - name: ocp-provision
+    params:
+      - name: issue_number
+        value: $(params.issue_number)
+      - name: issue_user
+        value: $(params.issue_user)
+      - name: issue_body
+        value: $(params.issue_body)
     taskRef:
       name: ocp-provision
   - name: cloudpak-deploy
     runAfter:
      - ocp-provision
+    params:
+      - name: issue_number
+        value: $(params.issue_number)
+      - name: issue_user
+        value: $(params.issue_user)
+      - name: issue_body
+        value: $(params.issue_body)
     taskRef:
       name: cloudpak-deploy

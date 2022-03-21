@@ -3,12 +3,22 @@ kind: Task
 metadata:
   name: cloudpak-deploy
 spec:
+  params:
+  - name: issue_body
+    description: Issue Body
+  - name: issue_user
+    description: User Name
+  - name: issue_number
+    description: Issue Number
   steps:
     - name: deploy-cloudpak
       image: quay.io/openshift/origin-cli:latest
       script: |
         #!/bin/sh
         set -eu -o pipefail
+
+        issue_body=$(params.issue_body)
+
         curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x /usr/local/bin/argocd
         argo_route=openshift-gitops-server
@@ -33,7 +43,7 @@ spec:
         }
         server=apps.$server_name.cp.fyre.ibm.com
 
-        argocd app create cp4waiops-app \
+        argocd app create $(params.issue_user)-cp4waiops-app \
         --sync-policy automatic \
         --project default \
         --repo https://github.com/IBM/cp4waiops-gitops.git \
@@ -55,3 +65,7 @@ spec:
         --helm-set cp4waiops.eventManager.enabled=true \
         --helm-set cp4waiops.eventManager.clusterDomain=$server \
         --helm-set cp4waiops.eventManager.namespace=noi
+
+        curl -s -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d \
+        "{\"body\": \"Created done\"}" \
+        "https://api.github.ibm.com/repos/lyanwei/katamari-dev-issue-tracking/issues/$(params.issue_number)/comments"

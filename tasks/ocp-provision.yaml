@@ -3,12 +3,19 @@ kind: Task
 metadata:
   name: ocp-provision
 spec:
+  params:
+  - name: issue_body
+    description: Issue Body
+  - name: issue_user
+    description: User Name
   steps:
     - name: ocp-provision
       image: quay.io/openshift/origin-cli:latest
       script: |
         #!/bin/sh
         set -eu -o pipefail
+
+        issue_body=$(params.issue_body)
 
         curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x /usr/local/bin/argocd
@@ -27,7 +34,7 @@ spec:
               --password "${argo_pwd}" \
               --insecure
 
-        argocd app create ocp-provision \
+        argocd app create $(params.issue_user)-ocp-provision \
         --sync-policy automatic \
         --project default \
         --repo https://github.com/IBM/cp4waiops-gitops.git \

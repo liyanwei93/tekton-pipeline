@@ -4,13 +4,22 @@ metadata:
   name: getting-started-triggertemplate
 spec:
   params:
-    - name: action
+    - name: issue_number
+    - name: issue_user
+    - name: issue_body
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
         generateName: cloudpak-deploy-run-
       spec:
+        params:
+          - name: issue_number
+            value: $(tt.params.issue_number)
+          - name: issue_user
+            value: $(tt.params.issue_user)
+          - name: issue_body
+            value: $(tt.params.issue_body)
         pipelineRef:
           name: cloudpak
         serviceAccountName: triggers-sa
@@ -21,8 +30,12 @@ metadata:
   name: getting-started-pipelinebinding
 spec:
   params:
-  - name: action
-    value: $(body.action)
+  - name: issue_number
+    value: $(body.issue.number)
+  - name: issue_user
+    value: $(body.issue.user.login)
+  - name: issue_body
+    value: $(body.issue.body)
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
