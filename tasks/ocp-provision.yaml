@@ -8,6 +8,8 @@ spec:
     description: Issue Body
   - name: issue_user
     description: User Name
+  - name: issue_number
+    description: Issue Number
   steps:
     - name: ocp-provision
       image: quay.io/openshift/origin-cli:latest
