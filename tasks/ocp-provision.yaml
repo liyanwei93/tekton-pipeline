@@ -48,7 +48,10 @@ spec:
         --helm-set cluster.provider.credentials.user=REPLACE_IT
 
         while : ; do
-          status=$(oc get OpenShiftFyre openshiftfyre-qb-large -n openshift-gitops -o jsonpath={.status.cluster.status})
+          status=$(oc get OpenShiftFyre openshiftfyre-qb-large -n openshift-gitops -o jsonpath={.status.cluster.status}) \
+          || {
+            echo "OpenShiftFyre has not been created yet."
+          }
           if [[ $status != "deployed" ]]; then
             sleep 10s
           else

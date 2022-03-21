@@ -26,7 +26,11 @@ spec:
               --password "${argo_pwd}" \
               --insecure
 
-        server_name=$(oc get OpenShiftFyre openshiftfyre-qb-large -n openshift-gitops -o jsonpath={.status.cluster.name})
+        server_name=$(oc get OpenShiftFyre openshiftfyre-qb-large -n openshift-gitops -o jsonpath={.status.cluster.name}) \
+        || {
+          echo "OpenShiftFyre can not found."
+          exit 1
+        }
         server=apps.$server_name.cp.fyre.ibm.com
 
         argocd app create cp4waiops-app \
