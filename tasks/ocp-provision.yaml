@@ -18,7 +18,7 @@ spec:
         set -eu -o pipefail
 
         echo "$(params.issue_body)" > issue_body
-        product-groupId=$(grep product-groupId issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}')
+        GROUPID=$(grep product-groupId issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}')
 
         curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x /usr/local/bin/argocd
@@ -53,7 +53,7 @@ spec:
         --helm-set cp4waiops.eventManager.enabled=false \
         --helm-set cluster.enabled=true \
         --helm-set cluster.provider.type=fyre \
-        --helm-set cluster.provider.credentials.productGroupId="$product-groupId" \
+        --helm-set cluster.provider.credentials.productGroupId=$GROUPID \
         --helm-set cluster.provider.credentials.token=REPLACE_IT \
         --helm-set cluster.provider.credentials.user=REPLACE_IT
 
