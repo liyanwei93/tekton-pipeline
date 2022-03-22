@@ -17,7 +17,10 @@ spec:
         #!/bin/sh
         set -eu -o pipefail
 
-        issue_body=$(params.issue_body)
+        echo "$(params.issue_body)" > issue_body
+        CP4WAIOPS_VERSION=$(grep cp4waiops.version issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}')
+        AIMANAGER=$(grep cp4waiops.aiManager issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}')
+        EVENTMANAGER=$(grep cp4waiops.eventManager issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}')
 
         curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x /usr/local/bin/argocd
@@ -41,7 +44,7 @@ spec:
           echo "OpenShiftFyre can not found."
           exit 1
         }
-        server=apps.$server_name.cp.fyre.ibm.com
+        SERVER=apps.$server_name.cp.fyre.ibm.com
 
         argocd app create $(params.issue_user)-cp4waiops-app \
         --sync-policy automatic \
@@ -55,15 +58,15 @@ spec:
         --helm-set argocd.cluster=openshift \
         --helm-set argocd.allowLocalDeploy=false \
         --helm-set rookceph.enabled=true \
-        --helm-set cp4waiops.version=v3.2 \
+        --helm-set cp4waiops.version=$CP4WAIOPS_VERSION \
         --helm-set cp4waiops.dockerUsername=cp \
         --helm-set cp4waiops.dockerPassword=REPLACE_IT \
         --helm-set cp4waiops.profile=small \
-        --helm-set cp4waiops.aiManager.enabled=true \
+        --helm-set cp4waiops.aiManager.enabled=$AIMANAGER \
         --helm-set cp4waiops.aiManager.namespace=cp4waiops \
         --helm-set cp4waiops.aiManager.instanceName=aiops-installation \
-        --helm-set cp4waiops.eventManager.enabled=true \
-        --helm-set cp4waiops.eventManager.clusterDomain=$server \
+        --helm-set cp4waiops.eventManager.enabled=$EVENTMANAGER \
+        --helm-set cp4waiops.eventManager.clusterDomain=$SERVER \
         --helm-set cp4waiops.eventManager.namespace=noi
 
         curl -s -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d \
