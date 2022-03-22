@@ -69,6 +69,57 @@ spec:
         --helm-set cp4waiops.eventManager.clusterDomain=$SERVER \
         --helm-set cp4waiops.eventManager.namespace=noi
 
+        if [ $AIMANAGER == "true" ]
+        then
+          while : ; do
+
+            AI_SYNC=$(oc get application $server_name-cp4waiops-aimanager -n openshift-gitops -o jsonpath={.status.sync.status}) \
+            || {
+              echo "Can't search AIManager application sync status."
+            }
+            AI_HEATH=$(oc get application $server_name-cp4waiops-aimanager -n openshift-gitops -o jsonpath={.status.health.status}) \
+            || {
+              echo "Can't search AIManager application health status."
+            }
+
+            if [[ $AI_SYNC != "Synced" && $AI_HEATH != "Healthy" ]]; then
+              sleep 10s
+            else
+              break
+            fi
+
+          done
+        fi
+
+        if [[ $EVENTMANAGER == "true" ]]
+        then
+          while : ; do
+
+            EVENT_SYNC=$(oc get application $server_name-cp4waiops-eventmanager -n openshift-gitops -o jsonpath={.status.sync.status}) \
+            || {
+              echo "Can't search EventManager application sync status."
+            }
+            EVENT_HEATH=$(oc get application $server_name-cp4waiops-eventmanager -n openshift-gitops -o jsonpath={.status.health.status}) \
+            || {
+              echo "Can't search EventManager application health status."
+            }
+
+            if [[ $EVENT_SYNC != "Synced" && $EVENT_HEATH != "Healthy" ]]; then
+              sleep 10s
+            else
+              break
+            fi
+
+          done
+        fi
+
+        PASSWORD=$(oc get OpenShiftFyre openshiftfyre-qb-large -n openshift-gitops -o jsonpath={.status.cluster.password}) \
+        || {
+          echo "Password of OpenShift fyre can not found."
+        }
+
+        ACCESS_URL=https://console-openshift-console.$SERVER
+        
         curl -s -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d \
-        "{\"body\": \"Created done\"}" \
+        "{\"body\": \"Cloudpak deployed done!!! \n OCP Cluster login info:\n Access Url: $ACCESS_URL\n Username: kubeadmin\n Password: $PASSWORD\"}" \
         "https://api.github.ibm.com/repos/lyanwei/katamari-dev-issue-tracking/issues/$(params.issue_number)/comments"
