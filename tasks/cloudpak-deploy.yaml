@@ -18,9 +18,9 @@ spec:
         set -eu -o pipefail
 
         echo "$(params.issue_body)" > issue_body
-        CP4WAIOPS_VERSION=$(grep cp4waiops.version issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}')
-        AIMANAGER=$(grep cp4waiops.aiManager issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}')
-        EVENTMANAGER=$(grep cp4waiops.eventManager issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}')
+        VERSION=$(grep cp4waiops.version issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}' | tr -d '\n\r' )
+        AIMANAGER=$(grep cp4waiops.aiManager issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}' | tr -d '\n\r' )
+        EVENTMANAGER=$(grep cp4waiops.eventManager issue_body | awk -F: '{print $NF}' | awk '{gsub(/^\s+|\$s+/, "");print}' | tr -d '\n\r' )
 
         curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x /usr/local/bin/argocd
@@ -58,7 +58,7 @@ spec:
         --helm-set argocd.cluster=openshift \
         --helm-set argocd.allowLocalDeploy=false \
         --helm-set rookceph.enabled=true \
-        --helm-set cp4waiops.version=$CP4WAIOPS_VERSION \
+        --helm-set cp4waiops.version=$VERSION \
         --helm-set cp4waiops.dockerUsername=cp \
         --helm-set cp4waiops.dockerPassword=REPLACE_IT \
         --helm-set cp4waiops.profile=small \
@@ -71,6 +71,7 @@ spec:
 
         if [ $AIMANAGER == "true" ]
         then
+          echo "Check AIManager Application Status"
           while : ; do
 
             AI_SYNC=$(oc get application $server_name-cp4waiops-aimanager -n openshift-gitops -o jsonpath={.status.sync.status}) \
@@ -91,8 +92,9 @@ spec:
           done
         fi
 
-        if [[ $EVENTMANAGER == "true" ]]
+        if [ $EVENTMANAGER == "true" ]
         then
+          echo "Check EventManager Application Status"
           while : ; do
 
             EVENT_SYNC=$(oc get application $server_name-cp4waiops-eventmanager -n openshift-gitops -o jsonpath={.status.sync.status}) \
